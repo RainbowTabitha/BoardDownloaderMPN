@@ -25,17 +25,58 @@ TEMP_DIR = config_dir
 if not os.path.exists(TEMP_DIR):
     os.makedirs(TEMP_DIR)
 
-# Scale app 2.5x with DPI awareness
-ctk.set_appearance_mode("System")
+def get_dpi_info():
+    root = ctk.CTk()
+    
+    # Get screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    
+    # Get DPI scaling information
+    dpi_scaling = 1.60
+    
+    
+    # For more detailed scaling info on Windows
+    try:
+        if root.tk.call('tk', 'windowingsystem') == 'win32':
+            scaling = root.tk.call('tk', 'scaling')
+            print(f"Tk scaling: {scaling}")
+    except:
+        pass
+        
+    root.destroy()
+    
+    return {
+        "screen_width": screen_width,
+        "screen_height": screen_height,
+        "dpi_scaling": dpi_scaling
+    }
+
+
+
+# Get DPI info
+dpi_info = get_dpi_info()
+scaling_factor = dpi_info["dpi_scaling"]
+
+# Scale app with DPI awareness
+ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
-scaling_factor = 2
 ctk.set_widget_scaling(scaling_factor)
 
 # Create main app
 app = ctk.CTk()
 app.title("Board Browser")
-app.maxsize(int(1290 * scaling_factor), int(650 * scaling_factor))
-app.minsize(int(1290 * scaling_factor), int(650 * scaling_factor))
+# Apply scaling to window size (1290x650)
+width = int(1050 * scaling_factor)
+height = int(650 * scaling_factor)
+
+# Set window size
+app.geometry(f"{width}x{height}")
+
+# Optional: Set minimum/maximum size
+app.minsize(width=int(800 * scaling_factor), height=int(400 * scaling_factor))
+app.maxsize(width=int(1600 * scaling_factor), height=int(900 * scaling_factor))
+
 
 # Configure grid layout
 app.grid_columnconfigure(0, weight=1)
@@ -52,6 +93,7 @@ search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
 search_button = ctk.CTkButton(search_frame, text="Search", command=lambda: fetch_data(), height=25 * scaling_factor, width=100)
 search_button.grid(row=0, column=1, padx=10, pady=10)
+
 
 def get_latest_rom_download_link(project_id):
     """
@@ -380,8 +422,8 @@ def update_card(project_id, project_name, card):
     details = fetch_project_details(project_id)
     if details:
         card.card_1(
-            width=300 * scaling_factor,
-            height=250 * scaling_factor,
+            width=int(300 * scaling_factor),
+            height=int(250 * scaling_factor),
             title=f"{project_name}: by {details.get('author', '')}",
             text=truncate_description(details.get("description", "No description available")),
             button_text="More Info",
@@ -414,7 +456,7 @@ def fetch_data():
 
             # Placeholder card
             card = CTkCard(master=scrollable_frame, border_width=1, corner_radius=5)
-            card.card_1(width=300 * scaling_factor, height=250 * scaling_factor, 
+            card.card_1(width=int(300 * scaling_factor), height=int(250 * scaling_factor), 
                         title=project_name, text="Fetching details...",
                         button_text="Loading...", command=lambda: None)
             card.grid(row=row, column=col, padx=10, pady=20)
